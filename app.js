@@ -3,11 +3,12 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const helmet = require('helmet');
 const options = require('./knexfile.js');
 const knex = require('knex')(options);
 const axios = require('axios').default;
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var userRouter = require('./routes/user');
 var stocksRouter = require('./routes/stocks');
 
 var app = express();
@@ -16,6 +17,7 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+app.use(helmet());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -26,7 +28,7 @@ app.use((req, res, next) => {
   next()
   })
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/user', userRouter);
 app.use('/stocks', stocksRouter);
 
 
