@@ -27,7 +27,7 @@ router.get("/symbols", async function(req,res, next) {
     if(typeof industry === 'undefined' && validQuery)
     {
       
-      req.db.from("stocksa").select("name", "symbol","industry")
+      req.db.from("stocks").distinct("name", "symbol","industry")
       .then((rows) => {
       res.json({"Error" : false, "Message" : "Success", "Symbols" : rows})
       })
@@ -40,9 +40,22 @@ router.get("/symbols", async function(req,res, next) {
     else if(validQuery)
     {
       industry = "%"+industry+"%";
-      req.db.from("stocksa").select("name", "symbol","industry").whereRaw("industry LIKE ?",[industry])
+      req.db.from("stocks").distinct("name", "symbol","industry").whereRaw("industry LIKE ?",[industry])
       .then((rows) => {
-      res.json({"Error" : false, "Message" : "Success", "Symbols" : rows})
+
+        if(rows.length==0)
+        {
+          res.json({
+            "error": true,
+            "message": "Industry sector not found"
+          })
+        }
+        else{
+          res.json({"Error" : false, "Message" : "Success", "Symbols" : rows})
+        }
+
+        //console.log(rows.length);
+      
       })
       .catch((err) => {
       console.log(err);
@@ -62,15 +75,34 @@ router.get("/:symbol",function(req,res,next){
   console.log(/^[A-Z]+$/.test(x) && x.length > 0 && x.length < 6);
 
   if(/^[A-Z]+$/.test(x) && x.length > 0 && x.length < 6){
-    res.json({"symbol":req.params.symbol});
+    //res.json({"symbol":req.params.symbol});
 
     //the regex is valid
 
     //check database for symbol
 
-    //if nothing then no entry
+//     SELECT * FROM webcomputing.stocks
+// WHERE symbol = "AAL"
+// GROUP BY name
+// ORDER BY timestamp
 
-    //otherwise spit it back
+    req.db.from("stocks").select("*").where("symbol","=",req.params.symbol)
+      .then((rows)=> {
+        
+        if(rows.length==0)
+        {
+          res.json({
+            "error": true,
+            "message": "No entry for symbol in stocks database"
+          })
+        }
+        else
+        {
+          res.json({"data":rows})
+        }
+
+        
+      })
 
   }
   else{
