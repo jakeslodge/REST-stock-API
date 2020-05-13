@@ -9,6 +9,67 @@ router.get('/', function(req, res, next) {
 });
 
 
+//middleware
+const authorize = (req,res,next)=>{
+  const authorization = req.headers.authorization
+  console.log("autho:",authorization)
+  let token = null;
+  //retrive token
+  if(authorization && authorization.split(" ").length == 2){
+    token = authorization.split(" ")[1]
+    console.log("Token: ",token)
+  }else{
+    console.log("Unauthorised user")
+    //return;
+  }
+  next()
+}
+
+//authenticated route
+//                         , add authorize for middleware,
+
+router.get("/authed/:symbol",function(req,res,next){
+  console.log("auth route triggered");
+  console.log(req.params);
+  var symbol = req.params.symbol;
+  var from = req.query.from;
+  var to = req.query.to;  
+  console.log(symbol);
+  console.log(from);
+  console.log(to);
+
+  if(symbol && from && to) //all three paramaters
+  {
+    if(/^[A-Z]+$/.test(symbol) && symbol.length > 0 && symbol.length < 6)
+    {
+      //this symbol is valid lets search for dates
+      req.db.from("stocks").select("*").where('symbol',symbol).where('timestamp','>=',from).where('timestamp','<=',to)
+      .then((rows)=>{
+        res.json({"results":rows})
+      })
+
+      
+    }
+    else{
+      //send invalid message
+      res.json({"error": true,"message": "Stock symbol incorrect format - must be 1-5 capital letters"});
+    }
+  }
+  else
+  {
+    if(/^[A-Z]+$/.test(symbol) && symbol.length > 0 && symbol.length < 6)
+    {
+      //this symbol is valid lets search for the single
+      res.json({"searching":symbol})
+    }
+    else{
+      //send invalid message
+      res.json({"error": true,"message": "Stock symbol incorrect format - must be 1-5 capital letters"});
+    }
+    
+  }
+
+})
 
 //lets do the handle for stock/symbols
 router.get("/symbols", async function(req,res, next) {
@@ -70,22 +131,10 @@ router.get("/symbols", async function(req,res, next) {
   });
 
 router.get("/:symbol",function(req,res,next){
-  //symbol test
   let x = req.params.symbol;
   console.log(/^[A-Z]+$/.test(x) && x.length > 0 && x.length < 6);
 
   if(/^[A-Z]+$/.test(x) && x.length > 0 && x.length < 6){
-    //res.json({"symbol":req.params.symbol});
-
-    //the regex is valid
-
-    //check database for symbol
-
-//     SELECT * FROM webcomputing.stocks
-// WHERE symbol = "AAL"
-// GROUP BY name
-// ORDER BY timestamp
-
     req.db.from("stocks").select("*").where("symbol","=",req.params.symbol).limit(1)
       .then((rows)=> {
         
@@ -112,5 +161,6 @@ router.get("/:symbol",function(req,res,next){
   
 
 });
+
 
 module.exports = router;
