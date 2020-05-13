@@ -86,7 +86,7 @@ router.get("/:symbol",function(req,res,next){
 // GROUP BY name
 // ORDER BY timestamp
 
-    req.db.from("stocks").select("*").where("symbol","=",req.params.symbol)
+    req.db.from("stocks").select("*").where("symbol","=",req.params.symbol).limit(1)
       .then((rows)=> {
         
         if(rows.length==0)
