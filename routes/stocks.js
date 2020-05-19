@@ -25,6 +25,8 @@ const authorize = (req,res,next)=>{
   next()
 }
 
+
+
 //authenticated route
 //                         , add authorize for middleware,
 
@@ -40,7 +42,7 @@ router.get("/authed/:symbol",function(req,res,next){
  
   var from = req.query.from;
   var to = req.query.to;  
-  console.log(symbol);
+  console.log("SYMBOL IS -->"+symbol);
   //console.log(from);
   //console.log(to);
 
@@ -139,6 +141,8 @@ router.get("/authed/:symbol",function(req,res,next){
 
 })
 
+
+
 //lets do the handle for stock/symbols
 router.get("/symbols", async function(req,res, next) {
   let validQuery = true;
@@ -158,7 +162,7 @@ router.get("/symbols", async function(req,res, next) {
       
       req.db.from("stocks").distinct("name", "symbol","industry")
       .then((rows) => {
-      res.json({"Error" : false, "Message" : "Success", "Symbols" : rows})
+      res.json(rows)
       })
       .catch((err) => {
       console.log(err);
@@ -180,7 +184,7 @@ router.get("/symbols", async function(req,res, next) {
           })
         }
         else{
-          res.json({"Error" : false, "Message" : "Success", "Symbols" : rows})
+          res.json(rows)
         }
 
         //console.log(rows.length);
@@ -200,7 +204,22 @@ router.get("/symbols", async function(req,res, next) {
 
 router.get("/:symbol",function(req,res,next){
   let x = req.params.symbol;
+  console.log(x);
   console.log(/^[A-Z]+$/.test(x) && x.length > 0 && x.length < 6);
+
+  if(Object.keys(req.query).length != 0 && x!= 'authed')
+  {
+    res.status(400).json({
+      "error": true,
+      "message": "Date parameters only available on authenticated route /stocks/authed",
+    });
+    return
+  }
+  else if(Object.keys(req.query).length != 0 && x== 'authed')
+  {
+    res.status(400).json({"error":true,"message":"Stock symbol incorrect format - must be 1-5 capital letters"});
+    return
+  }
 
   if(/^[A-Z]+$/.test(x) && x.length > 0 && x.length < 6){
     req.db.from("stocks").select("*").where("symbol","=",req.params.symbol).limit(1)
@@ -208,14 +227,14 @@ router.get("/:symbol",function(req,res,next){
         
         if(rows.length==0)
         {
-          res.json({
+          res.status(404).json({
             "error": true,
             "message": "No entry for symbol in stocks database"
           })
         }
         else
         {
-          res.json({"data":rows})
+          res.status(200).json(rows[0])
         }
 
         
@@ -223,12 +242,14 @@ router.get("/:symbol",function(req,res,next){
 
   }
   else{
-    res.json({"error":true,"message":"Stock symbol incorrect format - must be 1-5 capital letters"});
+    res.status(400).json({"error":true,"message":"Stock symbol incorrect format - must be 1-5 capital letters"});
   }
 
   
 
 });
+
+router.get(function(req,res){res.status(404).json({error:true,message:"not found"})});
 
 
 module.exports = router;
