@@ -32,42 +32,110 @@ router.get("/authed/:symbol",function(req,res,next){
   console.log("auth route triggered");
   console.log(req.params);
   var symbol = req.params.symbol;
+
+  //testing query params
+  console.log(Object.keys(req.query));
+  console.log(Object.keys(req.query).length);
+
+ 
   var from = req.query.from;
   var to = req.query.to;  
   console.log(symbol);
-  console.log(from);
-  console.log(to);
+  //console.log(from);
+  //console.log(to);
 
-  if(symbol && from && to) //all three paramaters
+  if(symbol && Object.keys(req.query).length == 2)
   {
-    if(/^[A-Z]+$/.test(symbol) && symbol.length > 0 && symbol.length < 6)
+    if(from && to)
     {
-      //this symbol is valid lets search for dates
-      req.db.from("stocks").select("*").where('symbol',symbol).where('timestamp','>=',from).where('timestamp','<=',to)
-      .then((rows)=>{
-        res.json({"results":rows})
-      })
+      //they are from and to try parse them
+      try{
+        var parseFrom = new Date(from).toISOString();
+        var parseTo = new Date(to).toISOString();
 
-      
+        //its all good lets check the symbol
+        if(/^[A-Z]+$/.test(symbol) && symbol.length > 0 && symbol.length < 6)
+        {
+          //this symbol is valid lets search for dates
+          req.db.from("stocks").select("*").where('symbol',symbol).where('timestamp','>=',from).where('timestamp','<=',to)
+          .then((rows)=>{
+
+            if(rows.length != 0)
+            {
+              res.json({"results":rows})
+            }
+            else{
+              res.json({
+                "error": true,
+                "message": "No entries available for query symbol for supplied date range"
+              })
+            }
+          })
+    
+          
+        }
+        else{
+          //send invalid message
+          res.json({"error": true,"message": "Stock symbol incorrect format - must be 1-5 capital letters"});
+        }
+
+      }
+      catch (err){
+        res.json({
+          "error": true,
+          "message": "Parameters allowed are 'from' and 'to', example: /stocks/authed/AAL?from=2020-03-15"
+        })
+      }
     }
-    else{
-      //send invalid message
-      res.json({"error": true,"message": "Stock symbol incorrect format - must be 1-5 capital letters"});
+    else
+    {
+      res.json({
+        "error": true,
+        "message": "Parameters allowed are 'from' and 'to', example: /stocks/authed/AAL?from=2020-03-15"
+      })
     }
   }
-  else
+  else if(symbol && Object.keys(req.query).length != 0)
+  {
+    res.json({
+      "error": true,
+      "message": "Parameters allowed are 'from' and 'to', example: /stocks/authed/AAL?from=2020-03-15"
+    })
+  }
+  else if(symbol)
   {
     if(/^[A-Z]+$/.test(symbol) && symbol.length > 0 && symbol.length < 6)
     {
       //this symbol is valid lets search for the single
-      res.json({"searching":symbol})
+      req.db.from("stocks").select("*").where('symbol',symbol)
+      .then((rows)=>{
+
+        if(rows.length != 0)
+        {
+          res.json({"results":rows})
+        }else{ //no results for that symbol
+          res.json({
+            "error": true,
+            "message": "No entry for symbol in stocks database"
+          });
+        }
+
+        
+      })
+
     }
     else{
       //send invalid message
       res.json({"error": true,"message": "Stock symbol incorrect format - must be 1-5 capital letters"});
     }
-    
+
   }
+  else
+  {
+    res.json({error:"last one"})
+  }
+
+  
 
 })
 
