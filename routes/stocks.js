@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var jwt = require('jsonwebtoken');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -22,7 +23,29 @@ const authorize = (req,res,next)=>{
     console.log("Unauthorised user")
     //return;
   }
-  next()
+  //next()
+
+
+  try{
+    const secretKey = "Cab230!"
+    const decoded = jwt.verify(token,secretKey)
+
+    if (decoded.exp > Date.now()){
+      console.log("Token has expired")
+      res.status(403).json({"error":true, "message": "Authorization header expired"})
+      return
+    }
+
+    //permit user to advance
+    next()
+  } catch (e){
+    res.status(403).json({"error":true, "message": "Authorization header not found"})
+    console.log("Token is not valid");
+  }
+
+
+
+
 }
 
 
@@ -30,7 +53,7 @@ const authorize = (req,res,next)=>{
 //authenticated route
 //                         , add authorize for middleware,
 
-router.get("/authed/:symbol",function(req,res,next){
+router.get("/authed/:symbol",authorize,function(req,res,next){
   console.log("auth route triggered");
   console.log(req.params);
   var symbol = req.params.symbol;
