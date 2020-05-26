@@ -87,7 +87,7 @@ router.get("/authed/:symbol",authorize,function(req,res,next){
 
             if(rows.length != 0)
             {
-              res.status(200).json({"data":rows})
+              res.status(200).json(rows)
             }
             else{
               res.status(404).json({
