@@ -14,6 +14,7 @@ router.post('/register', function(req,res,next)
   
   var email = req.body.email;
   var password = req.body.password;
+  console.log("register|"+email+"|"+password);
   if (!email || !password)
   {
     res.status(400).json({
@@ -39,7 +40,7 @@ router.post('/register', function(req,res,next)
       return req.db.from("users").insert({email,hash})
       .then(() => {
         res.status(201).json({  "success": true,
-        "message": "User created"})
+        "message": "User Created"})
       })
   })
 

@@ -87,12 +87,12 @@ router.get("/authed/:symbol",authorize,function(req,res,next){
 
             if(rows.length != 0)
             {
-              res.json({"results":rows})
+              res.status(200).json({"data":rows})
             }
             else{
-              res.json({
+              res.status(404).json({
                 "error": true,
-                "message": "No entries available for query symbol for supplied date range"
+                "message": "Not Found entries available for query symbol for supplied date range"
               })
             }
           })
@@ -106,15 +106,15 @@ router.get("/authed/:symbol",authorize,function(req,res,next){
 
       }
       catch (err){
-        res.json({
+        res.status(400).json({
           "error": true,
-          "message": "Parameters allowed are 'from' and 'to', example: /stocks/authed/AAL?from=2020-03-15"
+          "message": "Bad Request - Parameters allowed are 'from' and 'to', example: /stocks/authed/AAL?from=2020-03-15"
         })
       }
     }
     else
     {
-      res.json({
+      res.status(400).json({
         "error": true,
         "message": "Parameters allowed are 'from' and 'to', example: /stocks/authed/AAL?from=2020-03-15"
       })
@@ -122,7 +122,7 @@ router.get("/authed/:symbol",authorize,function(req,res,next){
   }
   else if(symbol && Object.keys(req.query).length != 0)
   {
-    res.json({
+    res.status(400).json({
       "error": true,
       "message": "Parameters allowed are 'from' and 'to', example: /stocks/authed/AAL?from=2020-03-15"
     })
@@ -137,9 +137,9 @@ router.get("/authed/:symbol",authorize,function(req,res,next){
 
         if(rows.length != 0)
         {
-          res.json({"results":rows})
+          res.status(200).json({"data":rows})
         }else{ //no results for that symbol
-          res.json({
+          res.status(404).json({
             "error": true,
             "message": "No entry for symbol in stocks database"
           });
@@ -167,7 +167,7 @@ router.get("/authed/:symbol",authorize,function(req,res,next){
 
 
 //lets do the handle for stock/symbols
-router.get("/symbols", async function(req,res, next) {
+router.get("/symbols",function(req,res, next) {
   let validQuery = true;
   console.log(req.query);
 
@@ -185,11 +185,11 @@ router.get("/symbols", async function(req,res, next) {
       
       req.db.from("stocks").distinct("name", "symbol","industry")
       .then((rows) => {
-      res.json(rows)
+      res.status(200).json(rows)
       })
       .catch((err) => {
       console.log(err);
-      res.json({"Error" : true, "Message" : "Error in MySQL query"})
+      res.status(400).json({"Error" : true, "Message" : "Error in MySQL query"})
       })
 
     }
@@ -201,9 +201,9 @@ router.get("/symbols", async function(req,res, next) {
 
         if(rows.length==0)
         {
-          res.json({
+          res.status(404).json({
             "error": true,
-            "message": "Industry sector not found"
+            "message": "Industry sector Not Found"
           })
         }
         else{
@@ -220,7 +220,7 @@ router.get("/symbols", async function(req,res, next) {
     }
     else
     {
-      res.json({"error":true,"message":"Invalid query parameter: only 'industry' is permitted"});
+      res.status(400).json({"error":true,"message":"Invalid query parameter: only 'industry' is permitted"});
     }
 
   });
