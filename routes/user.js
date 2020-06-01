@@ -6,7 +6,7 @@ var router = express.Router();
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+  res.status(400).json({"error":true,"message":"Not Found"});
 });
 
 router.post('/register', function(req,res,next)

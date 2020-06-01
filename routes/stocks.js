@@ -48,11 +48,7 @@ const authorize = (req,res,next)=>{
 
 }
 
-
-
 //authenticated route
-//                         , add authorize for middleware,
-
 router.get("/authed/:symbol",authorize,function(req,res,next){
   console.log("auth route triggered");
   console.log(req.params);
@@ -163,8 +159,6 @@ router.get("/authed/:symbol",authorize,function(req,res,next){
   
 
 })
-
-
 
 //lets do the handle for stock/symbols
 router.get("/symbols",function(req,res, next) {
